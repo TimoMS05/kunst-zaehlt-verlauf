@@ -10,5 +10,5 @@
 const char* WLAN_NAME     = "Name des WLANs";
 const char* WLAN_PASSWORT = "Passwort";
 
-// Web-App-URL aus Google Apps Script (endet auf "/exec")
+// Adresse von api.php auf dem IONOS-Webspace, z. B. "https://eure-domain.de/kunst-zaehlt/api.php"
 const char* API_URL = "";

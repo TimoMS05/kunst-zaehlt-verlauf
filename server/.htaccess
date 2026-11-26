@@ -1,0 +1,11 @@
+# Nur api.php darf von außen aufgerufen werden.
+# konfiguration.php (Passwörter) und alle anderen Dateien sind gesperrt.
+<FilesMatch ".*">
+  Require all denied
+</FilesMatch>
+<Files "api.php">
+  Require all granted
+</Files>
+
+# Keine Ordnerauflistung
+Options -Indexes

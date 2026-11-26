@@ -1,7 +1,7 @@
 // =====================================================================
 // admin.js – Auswertung für das Projektteam
 // ---------------------------------------------------------------------
-// Anmeldung mit dem Admin-Passwort aus dem Apps Script (google/Code.gs).
+// Anmeldung mit dem Admin-Passwort aus server/konfiguration.php (IONOS).
 // Das Passwort bleibt nur im Arbeitsspeicher dieser Seite: Nach dem
 // Neuladen oder Abmelden muss es neu eingegeben werden.
 //
@@ -93,7 +93,7 @@
       zeigeApp();
       return;
     }
-    if (!KZ.konfiguriert) { zeigeLogin("In config.js fehlt die Adresse der Google-Tabelle (apiUrl).", true); return; }
+    if (!KZ.konfiguriert) { zeigeLogin("In config.js fehlt die Adresse von api.php (apiUrl).", true); return; }
     zeigeLogin();
   }
 
@@ -114,7 +114,7 @@
     zeigeApp();
   }
 
-  // Holt alle Stationen und Besuche aus der Google-Tabelle (nur mit Passwort)
+  // Holt alle Stationen und Besuche aus der Datenbank (nur mit Passwort)
   async function ladeDaten() {
     $("f-info").textContent = "lade …";
     const d = await KZ.senden({ aktion: "daten", passwort });

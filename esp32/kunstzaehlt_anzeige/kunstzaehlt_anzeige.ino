@@ -3,8 +3,8 @@
 // ---------------------------------------------------------------------
 // Was macht dieser Sketch?
 //  - Verbindet sich mit einem WLAN mit Internet (z. B. Handy-Hotspot).
-//  - Fragt alle 15 Sekunden bei der Google-Tabelle die Gesamtzahl der Scans ab
-//    (Web-App aus google/Code.gs, Adresse ...?aktion=anzahl).
+//  - Fragt alle 15 Sekunden beim IONOS-Server die Gesamtzahl der Scans ab
+//    (server/api.php, Adresse ...api.php?aktion=anzahl).
 //  - Zeigt die Zahl groß auf dem OLED-Display. Steigt sie, blinkt die LED grün.
 //  - Unten im Display steht der Zustand: "online", "kein WLAN", "Serverfehler".
 //
@@ -105,7 +105,7 @@ bool verbindeWlan() {
   return false;
 }
 
-// Fragt die Google-Tabelle nach der Gesamtzahl. Rückgabe: Zahl oder -1 bei Fehler.
+// Fragt den Server nach der Gesamtzahl. Rückgabe: Zahl oder -1 bei Fehler.
 long holeAnzahl() {
   WiFiClientSecure client;
   // Vereinfachung fürs Studienprojekt: Das Zertifikat des Servers wird nicht geprüft.
@@ -116,7 +116,7 @@ long holeAnzahl() {
   String url = String(API_URL) + "?aktion=anzahl";
   if (!http.begin(client, url)) return -1;
 
-  // Google leitet die Anfrage einmal auf einen anderen Server weiter -> folgen
+  // Falls der Server weiterleitet (z. B. http -> https), der Weiterleitung folgen
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   http.setTimeout(10000);
 
@@ -125,7 +125,7 @@ long holeAnzahl() {
   if (code == 200) {
     String antwort = http.getString();   // z. B. "42"
     antwort.trim();
-    // Nur eine reine Zahl akzeptieren (sonst z. B. eine Fehlerseite von Google)
+    // Nur eine reine Zahl akzeptieren (sonst z. B. eine Fehlerseite)
     bool nurZiffern = antwort.length() > 0;
     for (unsigned int i = 0; i < antwort.length(); i++) if (!isDigit(antwort[i])) nurZiffern = false;
     if (nurZiffern) anzahl = antwort.toInt();

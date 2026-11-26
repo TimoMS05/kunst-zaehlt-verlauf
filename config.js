@@ -1,13 +1,12 @@
 // =====================================================================
 // config.js – Einstellungen der Website
 // ---------------------------------------------------------------------
-// apiUrl: Die Web-App-URL aus Google Apps Script
-//   (Bereitstellen -> Bereitstellungen verwalten -> "Web-App"-URL,
-//    endet auf "/exec"). Siehe README.
+// apiUrl: Adresse der Datei api.php auf eurem IONOS-Webspace (siehe README),
+//   z. B. "https://eure-domain.de/kunst-zaehlt/api.php"
 // =====================================================================
 
 window.KZ_CONFIG = {
-  apiUrl: "",             // z. B. "https://script.google.com/macros/s/AKfy.../exec"
+  apiUrl: "",             // Adresse von api.php
 
   cookieTage: 30,         // so lange bleibt die Besucher-Kennung im Handy gespeichert
   routenPauseMinuten: 30, // gleiche Station innerhalb dieser Zeit = derselbe Besuch

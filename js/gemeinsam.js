@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------
 // - Cookies lesen, setzen, löschen
 // - Einwilligung verwalten
-// - Anfragen an die Google-Tabelle (Apps-Script-Web-App, nur mit fetch)
+// - Anfragen an die Datenbank über server/api.php (IONOS, nur mit fetch)
 // =====================================================================
 
 const KZ = (() => {
@@ -72,8 +72,8 @@ const KZ = (() => {
     return einwilligung() === "ja" ? cookieLesen(COOKIE_ID) : null;
   }
 
-  // ---------- Google-Tabelle (Apps-Script-Web-App) ----------
-  // Fehler meldet das Script im Feld "fehler" der Antwort.
+  // ---------- Schnittstelle api.php auf dem IONOS-Server ----------
+  // Fehler meldet der Server im Feld "fehler" der Antwort.
   function pruefeAntwort(daten) {
     if (daten && typeof daten === "object" && !Array.isArray(daten) && daten.fehler) throw new Error(daten.fehler);
     return daten;
@@ -87,7 +87,7 @@ const KZ = (() => {
   }
 
   // Anfrage mit Daten (z. B. Admin-Funktionen). Als "text/plain" gesendet,
-  // damit der Browser keine extra Vorab-Anfrage schickt, die Google nicht versteht.
+  // damit der Browser keine extra Vorab-Anfrage (CORS-Preflight) schicken muss.
   async function senden(daten) {
     const antwort = await fetch(cfg.apiUrl, {
       method: "POST",

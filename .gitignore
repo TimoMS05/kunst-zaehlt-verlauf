@@ -6,3 +6,6 @@ esp32/**/zugangsdaten.h
 
 # Arduino-Build-Ordner
 esp32/**/build/
+
+# Zugangsdaten für den IONOS-Server nie hochladen
+server/konfiguration.php

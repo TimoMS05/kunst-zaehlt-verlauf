@@ -2,7 +2,7 @@
 // station.js – Infoseite einer Skulptur
 // ---------------------------------------------------------------------
 // Aufruf über den QR-Code:  station.html?s=3&qr=1
-//  1. Station aus der Google-Tabelle laden und anzeigen.
+//  1. Station aus der Datenbank laden und anzeigen.
 //  2. Nur bei "qr=1" wird ein Besuch gemeldet.
 //  3. Ist noch keine Entscheidung zum Cookie gefallen, erscheint der
 //     Einwilligungs-Hinweis. Gemeldet wird nach der Entscheidung:
@@ -24,7 +24,7 @@
   let station = null;
   if (!KZ.konfiguriert) {
     $("name").textContent = "Noch nicht eingerichtet";
-    $("text").textContent = "In config.js fehlt die Adresse der Google-Tabelle (apiUrl).";
+    $("text").textContent = "In config.js fehlt die Adresse von api.php (apiUrl).";
   } else if (!Number.isInteger(stationId)) {
     $("name").textContent = "Station nicht gefunden";
   } else {
