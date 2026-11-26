@@ -30,7 +30,7 @@
         return;
       }
       try {
-        const stationen = await KZ.rest("stationen?select=id,name&aktiv=eq.true&order=id");
+        const stationen = await KZ.lesen({ aktion: "stationen" });
         liste.innerHTML = stationen.length
           ? stationen.map((s) => '<a href="station.html?s=' + s.id + '">' + KZ.html(s.name) + "</a>").join("")
           : '<p class="klein">Noch keine Stationen.</p>';

@@ -3,8 +3,8 @@
 // ---------------------------------------------------------------------
 // Was macht dieser Sketch?
 //  - Verbindet sich mit einem WLAN mit Internet (z. B. Handy-Hotspot).
-//  - Fragt alle 10 Sekunden bei Supabase die Gesamtzahl der Scans ab
-//    (Funktion "anzahl_scans" aus supabase/schema.sql).
+//  - Fragt alle 15 Sekunden bei der Google-Tabelle die Gesamtzahl der Scans ab
+//    (Web-App aus google/Code.gs, Adresse ...?aktion=anzahl).
 //  - Zeigt die Zahl groß auf dem OLED-Display. Steigt sie, blinkt die LED grün.
 //  - Unten im Display steht der Zustand: "online", "kein WLAN", "Serverfehler".
 //
@@ -13,7 +13,7 @@
 //
 // Vorbereitung:
 //  1. Datei "zugangsdaten.beispiel.h" kopieren und als "zugangsdaten.h"
-//     speichern (im selben Ordner). WLAN und Supabase eintragen.
+//     speichern (im selben Ordner). WLAN und Web-App-URL eintragen.
 //     zugangsdaten.h wird NICHT zu GitHub hochgeladen (.gitignore).
 //  2. Board "senseBox MCU Eye" wählen, hochladen.
 //
@@ -35,7 +35,7 @@
 #endif
 
 // ---------- Einstellungen ----------
-const unsigned long ABFRAGE_ALLE_MS = 10000;   // alle 10 Sekunden nachfragen
+const unsigned long ABFRAGE_ALLE_MS = 15000;   // alle 15 Sekunden nachfragen
 
 // ---------- Display ----------
 #define SCREEN_WIDTH 128
@@ -105,7 +105,7 @@ bool verbindeWlan() {
   return false;
 }
 
-// Fragt Supabase nach der Gesamtzahl. Rückgabe: Zahl oder -1 bei Fehler.
+// Fragt die Google-Tabelle nach der Gesamtzahl. Rückgabe: Zahl oder -1 bei Fehler.
 long holeAnzahl() {
   WiFiClientSecure client;
   // Vereinfachung fürs Studienprojekt: Das Zertifikat des Servers wird nicht geprüft.
@@ -113,20 +113,23 @@ long holeAnzahl() {
   client.setInsecure();
 
   HTTPClient http;
-  String url = String(SUPABASE_URL) + "/rest/v1/rpc/anzahl_scans";
+  String url = String(API_URL) + "?aktion=anzahl";
   if (!http.begin(client, url)) return -1;
 
-  http.addHeader("apikey", SUPABASE_ANON_KEY);
-  http.addHeader("Authorization", String("Bearer ") + SUPABASE_ANON_KEY);
-  http.addHeader("Content-Type", "application/json");
-  http.setTimeout(8000);
+  // Google leitet die Anfrage einmal auf einen anderen Server weiter -> folgen
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.setTimeout(10000);
 
-  int code = http.POST("{}");
+  int code = http.GET();
   long anzahl = -1;
   if (code == 200) {
     String antwort = http.getString();   // z. B. "42"
     antwort.trim();
-    anzahl = antwort.toInt();
+    // Nur eine reine Zahl akzeptieren (sonst z. B. eine Fehlerseite von Google)
+    bool nurZiffern = antwort.length() > 0;
+    for (unsigned int i = 0; i < antwort.length(); i++) if (!isDigit(antwort[i])) nurZiffern = false;
+    if (nurZiffern) anzahl = antwort.toInt();
+    else Serial.println("Unerwartete Antwort: " + antwort.substring(0, 80));
   } else {
     Serial.print("Server antwortet mit Code ");
     Serial.println(code);
@@ -153,8 +156,8 @@ void setup() {
   }
   zeigeZahl(angezeigteZahl, status);
 
-  if (strlen(SUPABASE_URL) == 0) {
-    Serial.println("SUPABASE_URL fehlt in zugangsdaten.h");
+  if (strlen(API_URL) == 0) {
+    Serial.println("API_URL fehlt in zugangsdaten.h");
   }
   verbindeWlan();
   letzteAbfrageMs = millis() - ABFRAGE_ALLE_MS;   // sofort das erste Mal abfragen
@@ -167,8 +170,8 @@ void loop() {
   }
   letzteAbfrageMs = millis();
 
-  if (strlen(SUPABASE_URL) == 0) {
-    status = "Supabase fehlt";
+  if (strlen(API_URL) == 0) {
+    status = "API_URL fehlt";
   } else if (!verbindeWlan()) {
     status = "kein WLAN";
   } else {

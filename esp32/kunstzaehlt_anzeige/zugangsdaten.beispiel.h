@@ -10,6 +10,5 @@
 const char* WLAN_NAME     = "Name des WLANs";
 const char* WLAN_PASSWORT = "Passwort";
 
-// Supabase: Project Settings -> API
-const char* SUPABASE_URL      = "";   // z. B. "https://abcdefghijkl.supabase.co"
-const char* SUPABASE_ANON_KEY = "";   // "anon public" Key
+// Web-App-URL aus Google Apps Script (endet auf "/exec")
+const char* API_URL = "";

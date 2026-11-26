@@ -1,21 +1,20 @@
 // =====================================================================
 // admin.js – Auswertung für das Projektteam
 // ---------------------------------------------------------------------
-// Anmeldung über Supabase (E-Mail + Passwort). Nur wer in der Tabelle
-// "admins" steht, darf die Besuche lesen (siehe supabase/schema.sql).
+// Anmeldung mit dem Admin-Passwort aus dem Apps Script (google/Code.gs).
+// Das Passwort bleibt nur im Arbeitsspeicher dieser Seite: Nach dem
+// Neuladen oder Abmelden muss es neu eingegeben werden.
 //
 // Mit admin.html?demo=1 läuft alles mit erfundenen Daten, ohne Anmeldung.
 // =====================================================================
 
 (() => {
   const $ = (id) => document.getElementById(id);
-  const { el, zahl, kuerzen } = Diagramm;
+  const { el, zahl } = Diagramm;
   const cfg = KZ.cfg;
 
   const demo = new URLSearchParams(location.search).get("demo") === "1";
-  const db = (!demo && KZ.konfiguriert && window.supabase)
-    ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey)
-    : null;
+  let passwort = "";   // nur im Arbeitsspeicher, nie im Browser gespeichert
 
   const PAUSE_MS = (cfg.routenPauseMinuten || 30) * 60000;  // gleiche Station kurz hintereinander = 1 Besuch
   const TOUR_PAUSE_MS = 6 * 3600000;                         // länger als 6 h dazwischen = neuer Rundgang
@@ -94,57 +93,34 @@
       zeigeApp();
       return;
     }
-    if (!KZ.konfiguriert) { zeigeLogin("In config.js fehlen die Supabase-Zugangsdaten.", true); return; }
-    if (!db) { zeigeLogin("Supabase-Bibliothek konnte nicht geladen werden. Internetverbindung prüfen.", true); return; }
-
-    const { data } = await db.auth.getSession();
-    if (data.session) await nachAnmeldung(data.session);
-    else zeigeLogin();
+    if (!KZ.konfiguriert) { zeigeLogin("In config.js fehlt die Adresse der Google-Tabelle (apiUrl).", true); return; }
+    zeigeLogin();
   }
 
   async function anmelden() {
-    $("l-meldung").textContent = "Melde an …";
+    $("l-meldung").textContent = "Melde an und lade Daten …";
     $("l-meldung").className = "meldung";
-    const { data, error } = await db.auth.signInWithPassword({
-      email: $("l-mail").value.trim(), password: $("l-pass").value,
-    });
-    if (error) { zeigeLogin("Anmeldung fehlgeschlagen: E-Mail oder Passwort falsch.", true); return; }
-    await nachAnmeldung(data.session);
-  }
-
-  async function nachAnmeldung(session) {
-    $("kopfinfo").textContent = "angemeldet als " + session.user.email;
-    $("abmelden").classList.remove("versteckt");
-
-    const { data: istAdmin, error } = await db.rpc("ist_admin");
-    if (error || !istAdmin) {
-      zeigeLogin("Dieses Konto ist nicht als Admin eingetragen (Tabelle „admins“ in Supabase).", true);
-      return;
-    }
+    passwort = $("l-pass").value;
     try {
       await ladeDaten();
-      zeigeApp();
     } catch (e) {
-      zeigeLogin("Daten konnten nicht geladen werden: " + e.message, true);
+      passwort = "";
+      zeigeLogin(e.message, true);
+      return;
     }
+    $("l-pass").value = "";
+    $("kopfinfo").textContent = "angemeldet";
+    $("abmelden").classList.remove("versteckt");
+    zeigeApp();
   }
 
+  // Holt alle Stationen und Besuche aus der Google-Tabelle (nur mit Passwort)
   async function ladeDaten() {
     $("f-info").textContent = "lade …";
-    const st = await db.from("stationen").select("id,name,text,aktiv").order("id");
-    if (st.error) throw st.error;
-    stationen = st.data;
-
-    // Besuche in Paketen zu 1000 holen (mehr gibt Supabase pro Anfrage nicht heraus)
-    const alle = [];
-    for (let von = 0; ; von += 1000) {
-      const { data, error } = await db.from("besuche")
-        .select("id,station_id,zeit,besucher_id,sprache").order("id").range(von, von + 999);
-      if (error) throw error;
-      alle.push(...data);
-      if (data.length < 1000) break;
-    }
-    besuche = alle.map((b) => aufbereiten(b.id, b.station_id, Date.parse(b.zeit), b.besucher_id, b.sprache));
+    const d = await KZ.senden({ aktion: "daten", passwort });
+    stationen = d.stationen;
+    // Besuche kommen kompakt als Listen: [id, station_id, zeit in ms, besucher_id, sprache]
+    besuche = d.besuche.map((b) => aufbereiten(b[0], b[1], b[2], b[3], b[4]));
   }
 
   function aufbereiten(id, stationId, t, besucherId, sprache) {
@@ -466,11 +442,13 @@
       if (bearbeiteId) Object.assign(stationen.find((s) => s.id === bearbeiteId), { name, text });
       else stationen.push({ id: Math.max(0, ...stationen.map((s) => s.id)) + 1, name, text, aktiv: true });
     } else {
-      const antwort = bearbeiteId
-        ? await db.from("stationen").update({ name, text }).eq("id", bearbeiteId)
-        : await db.from("stationen").insert({ name, text });
-      if (antwort.error) { stationsMeldung("Speichern fehlgeschlagen: " + antwort.error.message, "fehler"); return; }
-      await ladeDaten();
+      try {
+        await KZ.senden({ aktion: "station_speichern", passwort, id: bearbeiteId, name, text });
+        await ladeDaten();
+      } catch (e) {
+        stationsMeldung("Speichern fehlgeschlagen: " + e.message, "fehler");
+        return;
+      }
     }
     $("s-formular").classList.add("versteckt");
     stationsMeldung(bearbeiteId ? "Station gespeichert." : "Station angelegt.", "ok");
@@ -480,14 +458,19 @@
   // Stationen werden nicht gelöscht, sondern archiviert: Ihre Besuche bleiben in der Auswertung.
   async function schalteAktiv(s) {
     if (s.aktiv && !confirm("Station „" + s.name + "“ archivieren? Ihr QR-Code zählt dann nicht mehr, die bisherigen Besuche bleiben erhalten.")) return;
+    const jetztAktiv = !s.aktiv;
     if (demo) {
-      s.aktiv = !s.aktiv;
+      s.aktiv = jetztAktiv;
     } else {
-      const { error } = await db.from("stationen").update({ aktiv: !s.aktiv }).eq("id", s.id);
-      if (error) { stationsMeldung("Fehler: " + error.message, "fehler"); return; }
-      await ladeDaten();
+      try {
+        await KZ.senden({ aktion: "station_aktiv", passwort, id: s.id, aktiv: jetztAktiv });
+        await ladeDaten();
+      } catch (e) {
+        stationsMeldung("Fehler: " + e.message, "fehler");
+        return;
+      }
     }
-    stationsMeldung(s.aktiv ? "Station ist aktiv." : "Station archiviert.", "ok");
+    stationsMeldung(jetztAktiv ? "Station ist aktiv." : "Station archiviert.", "ok");
     zeichneAlles();
   }
 
@@ -641,8 +624,8 @@
 
   $("l-los").onclick = anmelden;
   $("l-pass").addEventListener("keydown", (e) => { if (e.key === "Enter") anmelden(); });
-  $("abmelden").onclick = async () => {
-    if (db) await db.auth.signOut();
+  $("abmelden").onclick = () => {
+    passwort = "";
     location.href = "admin.html";
   };
 

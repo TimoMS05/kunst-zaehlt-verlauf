@@ -1,15 +1,13 @@
 // =====================================================================
 // config.js – Einstellungen der Website
 // ---------------------------------------------------------------------
-// Supabase-Daten findest du in Supabase unter
-//   Project Settings → API → "Project URL" und "anon public" Key.
-// Der anon-Key ist dafür gedacht, öffentlich in Websites zu stehen:
-// Was er darf, regeln die Regeln in supabase/schema.sql.
+// apiUrl: Die Web-App-URL aus Google Apps Script
+//   (Bereitstellen -> Bereitstellungen verwalten -> "Web-App"-URL,
+//    endet auf "/exec"). Siehe README.
 // =====================================================================
 
 window.KZ_CONFIG = {
-  supabaseUrl: "",        // z. B. "https://abcdefghijkl.supabase.co"
-  supabaseAnonKey: "",    // langer Schlüssel, beginnt mit "eyJ..."
+  apiUrl: "",             // z. B. "https://script.google.com/macros/s/AKfy.../exec"
 
   cookieTage: 30,         // so lange bleibt die Besucher-Kennung im Handy gespeichert
   routenPauseMinuten: 30, // gleiche Station innerhalb dieser Zeit = derselbe Besuch

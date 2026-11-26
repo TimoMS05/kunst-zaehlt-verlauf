@@ -22,10 +22,9 @@
   <section class="login versteckt" id="login">
     <div class="karte">
       <h2>Anmelden</h2>
-      <p class="klein unter">Nur für das Projektteam.</p>
-      <label for="l-mail">E-Mail</label>
-      <input id="l-mail" type="email" autocomplete="username">
-      <label for="l-pass">Passwort</label>
+      <p class="klein unter">Nur für das Projektteam. Das Passwort steht im Apps Script (Code.gs).</p>
+      <input type="text" autocomplete="username" value="admin" hidden>
+      <label for="l-pass">Admin-Passwort</label>
       <input id="l-pass" type="password" autocomplete="current-password">
       <p style="margin:14px 0 0"><button class="knopf" id="l-los" style="width:100%">Anmelden</button></p>
       <div class="meldung" id="l-meldung"></div>
@@ -163,7 +162,6 @@
 
   <script src="config.js"></script>
   <script src="js/gemeinsam.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <script src="js/diagramme.js"></script>
   <script src="js/admin.js"></script>

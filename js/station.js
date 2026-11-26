@@ -2,7 +2,7 @@
 // station.js – Infoseite einer Skulptur
 // ---------------------------------------------------------------------
 // Aufruf über den QR-Code:  station.html?s=3&qr=1
-//  1. Station aus Supabase laden und anzeigen.
+//  1. Station aus der Google-Tabelle laden und anzeigen.
 //  2. Nur bei "qr=1" wird ein Besuch gemeldet.
 //  3. Ist noch keine Entscheidung zum Cookie gefallen, erscheint der
 //     Einwilligungs-Hinweis. Gemeldet wird nach der Entscheidung:
@@ -24,13 +24,12 @@
   let station = null;
   if (!KZ.konfiguriert) {
     $("name").textContent = "Noch nicht eingerichtet";
-    $("text").textContent = "In config.js fehlen die Supabase-Zugangsdaten.";
+    $("text").textContent = "In config.js fehlt die Adresse der Google-Tabelle (apiUrl).";
   } else if (!Number.isInteger(stationId)) {
     $("name").textContent = "Station nicht gefunden";
   } else {
     try {
-      const treffer = await KZ.rest("stationen?select=id,name,text&aktiv=eq.true&id=eq." + stationId);
-      station = treffer[0] || null;
+      station = await KZ.lesen({ aktion: "station", id: stationId });
     } catch (e) {
       $("name").textContent = "Keine Verbindung";
       $("text").textContent = "Bitte später noch einmal versuchen.";
@@ -40,7 +39,7 @@
       $("oben").textContent = "Skulptur Projekte 2027 · Station " + station.id;
       $("name").textContent = station.name;
       $("text").textContent = station.text;   // textContent: kein HTML möglich, sicher
-    } else if ($("name").textContent === "…") {
+    } else if ($("name").textContent === "Lade …") {
       $("name").textContent = "Station nicht gefunden";
     }
   }

@@ -47,8 +47,8 @@
 
       if (!name && KZ.konfiguriert && Number.isInteger(id)) {
         try {
-          const treffer = await KZ.rest("stationen?select=name&aktiv=eq.true&id=eq." + id);
-          if (treffer[0]) name = treffer[0].name;
+          const station = await KZ.lesen({ aktion: "station", id });
+          if (station) name = station.name;
         } catch (e) { /* unten Fehlermeldung */ }
       }
       if (!name) { document.getElementById("name").textContent = "Station nicht gefunden"; return; }

@@ -11,7 +11,7 @@ auswerten, **in welcher Reihenfolge** Besucher die Skulpturen ansehen und **wann
 | Teil | Wo | Aufgabe |
 | --- | --- | --- |
 | Website | GitHub Pages | Infoseiten, Einwilligung, Auswertung |
-| Datenbank | Supabase (Frankfurt) | speichert Stationen und Besuche |
+| Datenbank | Google Tabelle + Apps Script | speichert Stationen und Besuche (kostenlos, läuft nicht ab) |
 | Anzeige | senseBox Eye (ESP32) | zeigt die Gesamtzahl der Scans |
 
 | Datei | Inhalt |
@@ -19,38 +19,47 @@ auswerten, **in welcher Reihenfolge** Besucher die Skulpturen ansehen und **wann
 | `station.html` | Infoseite einer Skulptur, Aufruf über QR-Code: `station.html?s=3&qr=1` |
 | `index.html` | Liste aller Stationen |
 | `datenschutz.html` | Datenschutzhinweise (Entwurf) und Widerruf |
-| `admin.html` | Auswertung mit Anmeldung: Übersicht, Zeitverlauf, Routen, einzelne Rundgänge, Stationen, QR-Codes |
+| `admin.html` | Auswertung mit Passwort: Übersicht, Zeitverlauf, Routen, einzelne Rundgänge, Stationen, QR-Codes |
 | `druck.html` | druckbares A4-Schild mit QR-Code |
-| `config.js` | Supabase-Adresse und Einstellungen |
-| `supabase/schema.sql` | Tabellen und Zugriffsregeln |
+| `config.js` | Adresse der Google-Web-App und Einstellungen |
+| `google/Code.gs` | Apps Script: Schnittstelle zwischen Website und Google Tabelle |
 | `esp32/kunstzaehlt_anzeige/` | Arduino-Sketch für das Display |
 
 Ausprobieren ohne Datenbank: `admin.html?demo=1` zeigt die Auswertung mit erfundenen Daten.
 
 ## Einrichtung
 
-1. **Supabase-Projekt anlegen** auf [supabase.com](https://supabase.com), Region *Central EU (Frankfurt)*.
-2. **Schema einspielen:** Im Supabase-Menü *SQL Editor* den Inhalt von `supabase/schema.sql` ausführen.
-3. **Admin-Zugang:**
-   - *Authentication → Users → Add user*: E-Mail und Passwort anlegen.
-   - Im SQL Editor: `insert into public.admins (email) values ('deine@adresse.de');`
-   - *Authentication → Sign In / Providers*: „Allow new users to sign up“ **ausschalten**.
-4. **`config.js` ausfüllen:** *Project Settings → API* → „Project URL“ und „anon public“ Key eintragen.
-5. **GitHub Pages:** *Settings → Pages → Branch `main`, Ordner `/ (root)`*.
-6. In `admin.html` anmelden, Stationen anlegen, unter „QR-Codes“ die Schilder drucken.
+1. **Google Tabelle anlegen:** auf [sheets.google.com](https://sheets.google.com) eine leere Tabelle,
+   Name z. B. „Kunst zählt – Daten“.
+2. **Script einfügen:** in der Tabelle *Erweiterungen → Apps Script*. Den Inhalt von
+   `google/Code.gs` komplett hineinkopieren (vorhandenen Text ersetzen).
+3. **Passwort setzen:** oben in `Code.gs` bei `ADMIN_PASSWORT` ein eigenes Passwort
+   (mind. 8 Zeichen) eintragen. Speichern (Disketten-Symbol).
+4. **Einrichten:** oben in der Leiste die Funktion `einrichten` auswählen → *Ausführen*.
+   Google fragt nach Berechtigungen → eigenes Konto wählen → *Erweitert* → *Zu … wechseln* → *Zulassen*.
+   Danach hat die Tabelle die Blätter „Stationen“ und „Besuche“.
+5. **Veröffentlichen:** *Bereitstellen → Neue Bereitstellung* → Zahnrad → *Web-App*.
+   „Ausführen als: **Ich**“, „Zugriff: **Jeder**“ → *Bereitstellen*. Die **Web-App-URL** (endet auf
+   `/exec`) kopieren.
+6. **URL eintragen:** in `config.js` bei `apiUrl`.
+7. In `admin.html` mit dem Passwort anmelden, Stationen anlegen, unter „QR-Codes“ die Schilder drucken.
+
+**Wichtig:** Nach jeder Änderung an `Code.gs` (z. B. neues Passwort) unter *Bereitstellen →
+Bereitstellungen verwalten → Bearbeiten (Stift) → Version: Neue Version* neu bereitstellen.
+Die URL bleibt dabei gleich.
 
 ### ESP32-Anzeige
 
 1. In `esp32/kunstzaehlt_anzeige/` die Datei `zugangsdaten.beispiel.h` kopieren, als `zugangsdaten.h`
-   speichern und WLAN sowie Supabase eintragen. Diese Datei wird nicht hochgeladen (`.gitignore`).
+   speichern, WLAN und Web-App-URL eintragen. Diese Datei wird nicht hochgeladen (`.gitignore`).
 2. Arduino IDE: Board „senseBox MCU Eye“, Bibliotheken *Adafruit SSD1306* und *Adafruit GFX*, hochladen.
 
 ## Datenschutz
 
 - Ohne Zustimmung wird nur der Aufruf gezählt (Station, Zeit, Sprachkürzel), **ohne** Kennung.
 - Mit Zustimmung kommt eine zufällige Kennung aus dem Cookie `kz_id` dazu (30 Tage gültig).
-- Die Datenbank speichert keine IP-Adressen. Besucher können Besuche nur eintragen, nicht lesen.
-- Lesen dürfen nur angemeldete Admins aus der Tabelle `admins`.
+- In der Tabelle stehen keine IP-Adressen. Ohne Admin-Passwort kann niemand Besuche lesen.
+- Die Tabelle selbst nicht freigeben: Nur das eigene Google-Konto sollte Zugriff haben.
 - Vor dem echten Betrieb: Datenschutzhinweise und Einwilligungstext mit dem Datenschutzbeauftragten
   der Universität abstimmen, Platzhalter in `datenschutz.html` ausfüllen.
-- Nach der Studie die Kennungen entfernen: `update public.besuche set besucher_id = null;`
+- Nach der Studie die Spalte `besucher_id` im Blatt „Besuche“ leeren.

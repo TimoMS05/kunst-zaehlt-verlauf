@@ -3,12 +3,12 @@
 // ---------------------------------------------------------------------
 // - Cookies lesen, setzen, löschen
 // - Einwilligung verwalten
-// - Anfragen an Supabase (ohne Zusatzbibliothek, nur mit fetch)
+// - Anfragen an die Google-Tabelle (Apps-Script-Web-App, nur mit fetch)
 // =====================================================================
 
 const KZ = (() => {
   const cfg = window.KZ_CONFIG || {};
-  const konfiguriert = Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
+  const konfiguriert = Boolean(cfg.apiUrl);
 
   // Cookies gelten nur für den Ordner dieser Website (z. B. /kunst-zaehlt/)
   const pfad = location.pathname.replace(/[^/]*$/, "") || "/";
@@ -72,29 +72,43 @@ const KZ = (() => {
     return einwilligung() === "ja" ? cookieLesen(COOKIE_ID) : null;
   }
 
-  // ---------- Supabase (REST) ----------
-  function kopfzeilen(extra) {
-    return Object.assign({
-      apikey: cfg.supabaseAnonKey,
-      Authorization: "Bearer " + cfg.supabaseAnonKey,
-    }, extra || {});
+  // ---------- Google-Tabelle (Apps-Script-Web-App) ----------
+  // Fehler meldet das Script im Feld "fehler" der Antwort.
+  function pruefeAntwort(daten) {
+    if (daten && typeof daten === "object" && !Array.isArray(daten) && daten.fehler) throw new Error(daten.fehler);
+    return daten;
   }
 
-  // Liest Daten, z. B. rest("stationen?select=id,name")
-  async function rest(abfrage) {
-    const antwort = await fetch(cfg.supabaseUrl + "/rest/v1/" + abfrage, { headers: kopfzeilen() });
+  // Öffentliche Abfrage, z. B. lesen({aktion: "station", id: 3})
+  async function lesen(parameter) {
+    const antwort = await fetch(cfg.apiUrl + "?" + new URLSearchParams(parameter));
     if (!antwort.ok) throw new Error("Server antwortet mit " + antwort.status);
-    return antwort.json();
+    return pruefeAntwort(await antwort.json());
+  }
+
+  // Anfrage mit Daten (z. B. Admin-Funktionen). Als "text/plain" gesendet,
+  // damit der Browser keine extra Vorab-Anfrage schickt, die Google nicht versteht.
+  async function senden(daten) {
+    const antwort = await fetch(cfg.apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(daten),
+    });
+    if (!antwort.ok) throw new Error("Server antwortet mit " + antwort.status);
+    return pruefeAntwort(await antwort.json());
   }
 
   // Trägt einen Besuch ein. keepalive = auch dann senden, wenn die Seite gerade geschlossen wird.
+  // Die Antwort brauchen wir nicht ("no-cors").
   function besuchMelden(stationId, keepalive) {
     const sprache = (navigator.language || "").slice(0, 2).toLowerCase();
-    return fetch(cfg.supabaseUrl + "/rest/v1/besuche", {
+    return fetch(cfg.apiUrl, {
       method: "POST",
+      mode: "no-cors",
       keepalive: Boolean(keepalive),
-      headers: kopfzeilen({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
+        aktion: "besuch",
         station_id: stationId,
         besucher_id: besucherId(),
         sprache: /^[a-z]{2}$/.test(sprache) ? sprache : "--",
@@ -115,5 +129,5 @@ const KZ = (() => {
   }
 
   return { cfg, konfiguriert, einwilligung, willigeEin, lehneAb, widerrufen, besucherId,
-           rest, besuchMelden, html, stationsUrl };
+           lesen, senden, besuchMelden, html, stationsUrl };
 })();
