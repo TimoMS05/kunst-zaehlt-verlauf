@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Schild drucken – Kunst zählt</title>
+<link rel="stylesheet" href="css/stil.css">
+<style>
+  @page { size: A4; margin: 15mm; }
+  .leiste { display: flex; gap: 8px; margin: 24px auto; max-width: 720px; padding: 0 16px; }
+  .schild { max-width: 720px; margin: 0 auto 24px; border: 2px solid var(--text); border-radius: 14px;
+            padding: 36px; text-align: center; }
+  .schild .oben { color: var(--grau); margin: 0; }
+  .schild h1 { font-size: 2.2em; margin: 8px 0 28px; line-height: 1.15; }
+  .schild .qr svg { width: 70%; max-width: 360px; height: auto; }
+  .schild .aufruf { font-size: 1.3em; font-weight: 700; margin: 18px 0 6px; }
+  .schild .url { font-size: 0.8em; color: var(--grau); word-break: break-all; }
+  .schild .hinweis { margin-top: 28px; font-size: 0.85em; color: var(--grau); }
+  @media print { .leiste { display: none; } .schild { margin: 0 auto; } }
+</style>
+</head>
+<body>
+  <div class="leiste">
+    <button class="knopf" onclick="window.print()">Drucken</button>
+    <button class="knopf leise" onclick="window.close()">Schließen</button>
+  </div>
+
+  <div class="schild">
+    <p class="oben">Skulptur Projekte 2027</p>
+    <h1 id="name">…</h1>
+    <div class="qr" id="qr"></div>
+    <p class="aufruf">Scannen und mehr erfahren</p>
+    <p class="url" id="url"></p>
+    <p class="hinweis">Wir zählen, wie oft diese Seite aufgerufen wird. Ein Cookie für die
+      Auswertung des Rundgangs setzen wir nur mit deiner Zustimmung.</p>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="js/gemeinsam.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script>
+    (async () => {
+      const p = new URLSearchParams(location.search);
+      const id = parseInt(p.get("s"), 10);
+      let name = p.get("demo") === "1" ? p.get("name") : null;
+
+      if (!name && KZ.konfiguriert && Number.isInteger(id)) {
+        try {
+          const treffer = await KZ.rest("stationen?select=name&aktiv=eq.true&id=eq." + id);
+          if (treffer[0]) name = treffer[0].name;
+        } catch (e) { /* unten Fehlermeldung */ }
+      }
+      if (!name) { document.getElementById("name").textContent = "Station nicht gefunden"; return; }
+
+      const url = KZ.stationsUrl(id, true);
+      document.title = "Schild – " + name;
+      document.getElementById("name").textContent = name;
+      document.getElementById("url").textContent = url;
+
+      const qr = qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+      document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 6, margin: 4, scalable: true });
+    })();
+  </script>
+</body>
+</html>

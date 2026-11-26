@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datenschutz – Skulptur Projekte 2027</title>
+<link rel="stylesheet" href="css/stil.css">
+<style>
+  table { border-collapse: collapse; width: 100%; font-size: 0.9em; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linie); vertical-align: top; }
+  h2 { font-size: 1.1em; margin: 28px 0 6px; }
+</style>
+</head>
+<body>
+  <main class="seite" style="padding-bottom: 40px">
+    <p class="klein"><a href="index.html">← Startseite</a></p>
+    <h1>Datenschutz und Cookies</h1>
+
+    <!-- ENTWURF: Vor der Veröffentlichung mit dem Datenschutzbeauftragten
+         der Universität Münster abstimmen und die [Platzhalter] ausfüllen. -->
+    <div class="hinweisbox">Entwurf – wird vor dem Start mit dem Datenschutzbeauftragten
+      der Universität Münster abgestimmt.</div>
+
+    <h2>Wer ist verantwortlich?</h2>
+    <p>Studienprojekt „Geotools für SKULPTUR PROJEKTE 2027“, Institut für Geoinformatik,
+       Universität Münster. Kontakt: [Name, E-Mail-Adresse].</p>
+
+    <h2>Was wir wissen wollen</h2>
+    <p>Wir untersuchen, wie viele Menschen die Skulpturen besuchen, zu welchen Zeiten und
+       in welcher Reihenfolge sie die Stationen ansehen. Die Ergebnisse verwenden wir nur
+       zusammengefasst im Studienprojekt.</p>
+
+    <h2>Was wir bei jedem Aufruf über den QR-Code speichern</h2>
+    <ul>
+      <li>welche Station aufgerufen wurde und wann,</li>
+      <li>die Sprache deines Browsers als Kürzel (z. B. „de“),</li>
+      <li>nur wenn du zustimmst: eine zufällige Nummer aus dem Cookie (siehe unten).</li>
+    </ul>
+    <p>Wir speichern keine Namen, keine E-Mail-Adressen und keinen Standort. Unsere
+       Datenbank speichert keine IP-Adressen.</p>
+
+    <h2>Cookies</h2>
+    <table>
+      <tr><th>Name</th><th>Inhalt</th><th>Dauer</th><th>Zweck</th></tr>
+      <tr><td>kz_id</td><td>zufällige Nummer</td><td>30 Tage</td>
+          <td>Erkennt, dass mehrere Aufrufe vom selben Handy kommen, damit wir die
+              Reihenfolge der besuchten Skulpturen auswerten können. Nur mit Zustimmung.</td></tr>
+      <tr><td>kz_einwilligung</td><td>„ja“ oder „nein“</td><td>30 Tage</td>
+          <td>Merkt sich deine Entscheidung, damit wir nicht jedes Mal fragen.</td></tr>
+    </table>
+    <p>Rechtsgrundlage für <em>kz_id</em> ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO,
+       § 25 Abs. 1 TDDDG). <em>kz_einwilligung</em> ist technisch nötig, um deine Wahl zu
+       speichern (§ 25 Abs. 2 Nr. 2 TDDDG).</p>
+
+    <h2>Wer die Daten verarbeitet</h2>
+    <ul>
+      <li><strong>Supabase</strong> (Datenbank, Serverstandort Frankfurt am Main) speichert die
+          Besuche in unserem Auftrag.</li>
+      <li><strong>GitHub Pages</strong> (GitHub Inc., USA) stellt diese Website bereit. Dabei
+          verarbeitet GitHub technisch bedingt deine IP-Adresse. [Hinweis zu Drittlandübermittlung
+          und Rechtsgrundlage ergänzen.]</li>
+    </ul>
+
+    <h2>Wie lange</h2>
+    <p>Spätestens nach Ende des Studienprojekts [Datum] entfernen wir die zufälligen Nummern
+       aus der Datenbank. Übrig bleiben nur Zählungen pro Station und Zeit.</p>
+
+    <h2>Deine Rechte</h2>
+    <p>Du kannst deine Einwilligung jederzeit widerrufen. Dabei werden beide Cookies auf
+       diesem Gerät gelöscht. Außerdem hast du das Recht auf Auskunft, Berichtigung,
+       Löschung und Beschwerde bei einer Aufsichtsbehörde.</p>
+
+    <p><strong>Dein Status auf diesem Gerät:</strong> <span id="status">…</span></p>
+    <p><button class="knopf leise" id="widerrufen">Einwilligung widerrufen und Cookies löschen</button></p>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="js/gemeinsam.js"></script>
+  <script>
+    function zeigeStatus() {
+      const w = KZ.einwilligung();
+      document.getElementById("status").textContent =
+        w === "ja" ? "Zugestimmt – dein Rundgang wird mit einer zufälligen Nummer gezählt."
+      : w === "nein" ? "Abgelehnt – Aufrufe werden nur ohne Nummer gezählt."
+      : "Noch nicht entschieden.";
+    }
+    document.getElementById("widerrufen").onclick = () => { KZ.widerrufen(); zeigeStatus(); };
+    zeigeStatus();
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Zugangsdaten für den ESP32 (WLAN-Passwort) nie hochladen
+esp32/**/zugangsdaten.h
+
+# Exportierte Besuchsdaten nie hochladen
+*.csv
+
+# Arduino-Build-Ordner
+esp32/**/build/

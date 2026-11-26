@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skulptur Projekte 2027</title>
+<link rel="stylesheet" href="css/stil.css">
+</head>
+<body>
+  <main class="seite">
+    <p class="klein" id="oben">Skulptur Projekte 2027</p>
+    <h1 id="name">…</h1>
+    <div class="text" id="text"></div>
+
+    <div class="fuss klein">
+      <a href="index.html">Alle Stationen</a> ·
+      <a href="datenschutz.html">Datenschutz und Cookies</a>
+    </div>
+  </main>
+
+  <!-- Einwilligungs-Hinweis. "Ablehnen" ist genauso groß wie "Zustimmen". -->
+  <div class="einwilligung versteckt" id="einwilligung" role="dialog" aria-labelledby="ew-titel">
+    <div class="innen">
+      <h2 id="ew-titel">Dürfen wir deinen Rundgang anonym mitzählen?</h2>
+      <p>Für ein Studienprojekt der Universität Münster möchten wir verstehen, in welcher
+         Reihenfolge Besucher die Skulpturen ansehen. Dazu speichern wir mit deiner
+         Zustimmung ein Cookie mit einer zufälligen Nummer (30 Tage). Wir erfahren
+         nicht, wer du bist. Ohne Zustimmung zählen wir nur diesen einen Aufruf.
+         <a href="datenschutz.html">Mehr erfahren</a></p>
+      <div class="knoepfe">
+        <button class="knopf leise" id="ew-nein">Ablehnen</button>
+        <button class="knopf" id="ew-ja">Zustimmen</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="js/gemeinsam.js"></script>
+  <script src="js/station.js"></script>
+</body>
+</html>

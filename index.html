@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skulptur Projekte 2027</title>
+<link rel="stylesheet" href="css/stil.css">
+</head>
+<body>
+  <main class="seite">
+    <p class="klein">Studienprojekt „Kunst zählt“ · Universität Münster</p>
+    <h1>Skulptur Projekte 2027</h1>
+    <p>Wähle eine Skulptur, um mehr über sie zu erfahren.</p>
+    <div class="stationsliste" id="liste"><p class="klein">Lade Stationen …</p></div>
+
+    <div class="fuss klein">
+      <a href="datenschutz.html">Datenschutz und Cookies</a> ·
+      <a href="admin.html">Admin</a>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="js/gemeinsam.js"></script>
+  <script>
+    // Liste aller aktiven Stationen. Von hier aus wird nichts gezählt.
+    (async () => {
+      const liste = document.getElementById("liste");
+      if (!KZ.konfiguriert) {
+        liste.innerHTML = '<p class="klein">Die Website ist noch nicht eingerichtet (config.js).</p>';
+        return;
+      }
+      try {
+        const stationen = await KZ.rest("stationen?select=id,name&aktiv=eq.true&order=id");
+        liste.innerHTML = stationen.length
+          ? stationen.map((s) => '<a href="station.html?s=' + s.id + '">' + KZ.html(s.name) + "</a>").join("")
+          : '<p class="klein">Noch keine Stationen.</p>';
+      } catch (e) {
+        liste.innerHTML = '<p class="klein">Keine Verbindung. Bitte später noch einmal versuchen.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

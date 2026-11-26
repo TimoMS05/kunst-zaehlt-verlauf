@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Auswertung – Kunst zählt</title>
+<link rel="stylesheet" href="css/stil.css">
+</head>
+<body class="admin">
+  <header class="kopf">
+    <div class="innen">
+      <div>
+        <h1>Kunst zählt · Auswertung</h1>
+        <p id="kopfinfo">Skulptur Projekte 2027</p>
+      </div>
+      <button class="knopf klein-knopf versteckt" id="abmelden">Abmelden</button>
+    </div>
+  </header>
+
+  <!-- ===== Anmeldung ===== -->
+  <section class="login versteckt" id="login">
+    <div class="karte">
+      <h2>Anmelden</h2>
+      <p class="klein unter">Nur für das Projektteam.</p>
+      <label for="l-mail">E-Mail</label>
+      <input id="l-mail" type="email" autocomplete="username">
+      <label for="l-pass">Passwort</label>
+      <input id="l-pass" type="password" autocomplete="current-password">
+      <p style="margin:14px 0 0"><button class="knopf" id="l-los" style="width:100%">Anmelden</button></p>
+      <div class="meldung" id="l-meldung"></div>
+    </div>
+    <p class="klein" style="text-align:center">Ohne Zugang ausprobieren:
+      <a href="admin.html?demo=1">Demo mit erfundenen Daten</a></p>
+  </section>
+
+  <!-- ===== Auswertung ===== -->
+  <div class="inhalt versteckt" id="app">
+    <nav class="reiter" id="reiter">
+      <button data-reiter="uebersicht" class="aktiv">Übersicht</button>
+      <button data-reiter="zeit">Zeitverlauf</button>
+      <button data-reiter="routen">Routen</button>
+      <button data-reiter="einzeln">Einzelne Rundgänge</button>
+      <button data-reiter="stationen">Stationen</button>
+      <button data-reiter="qr">QR-Codes</button>
+    </nav>
+
+    <div class="hinweisbox versteckt" id="demo-hinweis">Demo-Modus: Alle Zahlen sind erfunden.
+      Änderungen werden nicht gespeichert.</div>
+
+    <div class="filter" id="filter">
+      <div><label for="von">von</label><input type="date" id="von"></div>
+      <div><label for="bis">bis</label><input type="date" id="bis"></div>
+      <button class="knopf leise" id="f-alles">Gesamter Zeitraum</button>
+      <button class="knopf leise" id="f-neu">Neu laden</button>
+      <button class="knopf leise" id="f-csv">CSV exportieren</button>
+      <span class="klein" id="f-info"></span>
+    </div>
+
+    <!-- Übersicht -->
+    <section data-bereich="uebersicht">
+      <div class="kacheln" id="kacheln"></div>
+      <div class="raster-2">
+        <div class="karte"><h2>Scans pro Station</h2><p class="klein unter">alle Aufrufe über QR-Code</p><div id="ue-stationen"></div></div>
+        <div class="karte"><h2>Sprachen</h2><p class="klein unter">aus der Browsereinstellung</p><div id="ue-sprachen"></div></div>
+      </div>
+      <p class="klein" id="ue-hochrechnung"></p>
+    </section>
+
+    <!-- Zeitverlauf -->
+    <section data-bereich="zeit" class="versteckt">
+      <div class="karte">
+        <h2>Scans pro Tag</h2>
+        <p class="klein unter">dunkel: mit Cookie-Zustimmung · hell: ohne</p>
+        <div id="z-tage"></div>
+      </div>
+      <div class="raster-2">
+        <div class="karte">
+          <h2>Wochentag × Uhrzeit</h2>
+          <p class="klein unter">Je dunkler, desto mehr Scans</p>
+          <div class="waermekarte" id="z-waerme"></div>
+        </div>
+        <div class="karte">
+          <h2>Scans nach Uhrzeit</h2>
+          <p class="klein unter">alle Tage zusammen</p>
+          <div id="z-stunden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Routen -->
+    <section data-bereich="routen" class="versteckt">
+      <div class="kacheln" id="r-kacheln"></div>
+      <div class="karte">
+        <h2>Häufigste Rundgänge</h2>
+        <p class="klein unter">Reihenfolge der Stationen pro Besucher (nur mit Cookie-Zustimmung)</p>
+        <div id="r-top"></div>
+      </div>
+      <div class="karte">
+        <h2>Von Station → zu Station</h2>
+        <p class="klein unter">Wie oft Besucher direkt von einer Station zur nächsten gegangen sind,
+          in Klammern die mittlere Zeit dazwischen (Median)</p>
+        <div class="waermekarte" id="r-matrix"></div>
+      </div>
+      <div class="raster-2">
+        <div class="karte"><h2>Erste Station</h2><p class="klein unter">wo der Rundgang beginnt</p><div id="r-start"></div></div>
+        <div class="karte"><h2>Letzte Station</h2><p class="klein unter">wo der Rundgang endet</p><div id="r-ende"></div></div>
+      </div>
+      <div class="karte">
+        <h2>Wie viele Stationen pro Besucher?</h2>
+        <p class="klein unter">Anzahl verschiedener Stationen</p>
+        <div id="r-anzahl"></div>
+      </div>
+    </section>
+
+    <!-- Einzelne Rundgänge -->
+    <section data-bereich="einzeln" class="versteckt">
+      <div class="raster-2" style="margin-top:0">
+        <div class="karte">
+          <h2>Besucher</h2>
+          <p class="klein unter">pseudonym, neueste zuerst</p>
+          <table class="liste"><thead><tr><th>Kennung</th><th>Stationen</th><th class="nur-breit">zuletzt</th></tr></thead>
+            <tbody id="e-liste"></tbody></table>
+        </div>
+        <div class="karte">
+          <h2 id="e-titel">Rundgang</h2>
+          <p class="klein unter" id="e-unter">Links einen Besucher auswählen.</p>
+          <ul class="zeitleiste" id="e-zeitleiste"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stationen -->
+    <section data-bereich="stationen" class="versteckt">
+      <div class="karte">
+        <table class="liste">
+          <thead><tr><th>Nr.</th><th>Station</th><th class="nur-breit">Status</th><th class="zahl nur-breit">Scans</th><th></th></tr></thead>
+          <tbody id="s-liste"></tbody>
+        </table>
+        <p style="margin:14px 0 0"><button class="knopf" id="s-neu">+ Neue Station</button></p>
+        <div class="meldung" id="s-meldung"></div>
+      </div>
+      <div class="karte versteckt" id="s-formular">
+        <h2 id="s-titel">Neue Station</h2>
+        <label for="s-name">Name der Skulptur</label>
+        <input id="s-name" maxlength="80" placeholder="z. B. Giant Pool Balls">
+        <label for="s-text">Infotext für Besucher</label>
+        <textarea id="s-text" maxlength="3000" placeholder="Künstlerin oder Künstler, Entstehung, Material …"></textarea>
+        <div class="aktionen" style="margin-top:14px">
+          <button class="knopf leise" id="s-abbrechen">Abbrechen</button>
+          <button class="knopf" id="s-speichern">Speichern</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- QR-Codes -->
+    <section data-bereich="qr" class="versteckt">
+      <p class="klein" style="margin-top:0">Jede Station bekommt einen eigenen QR-Code. Er führt auf die
+        Infoseite und zählt den Besuch. „Schild drucken“ öffnet ein A4-Schild.</p>
+      <div class="qr-raster" id="q-raster"></div>
+    </section>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="js/gemeinsam.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script src="js/diagramme.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
