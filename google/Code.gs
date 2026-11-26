@@ -21,7 +21,7 @@
 //  - Einzelne Besuche kann ohne Passwort niemand lesen.
 // =====================================================================
 
-const ADMIN_PASSWORT = "HIER-EIN-EIGENES-PASSWORT";   // mindestens 8 Zeichen, bitte ändern!
+const ADMIN_PASSWORT = "Timo1234";   // mindestens 8 Zeichen, bitte ändern!
 
 const BLATT_STATIONEN = "Stationen";
 const BLATT_BESUCHE = "Besuche";
