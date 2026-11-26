@@ -110,8 +110,18 @@ try {
     // Technische Details nur ins Server-Log, nicht an Besucher
     error_log('kunst-zaehlt: ' . $fehler->getMessage());
     $meldung = $fehler instanceof KzFehler ? $fehler->getMessage() : 'Serverfehler (Details im Fehlerprotokoll)';
-    if ($fehler instanceof PDOException && str_contains($fehler->getMessage(), "doesn't exist")) {
-        $meldung = 'Tabellen fehlen noch: bitte einmal in admin.html anmelden.';
+    if ($fehler instanceof PDOException) {
+        // Verständliche Hinweise ohne technische Details (MySQL-Fehlernummern)
+        $nummer = preg_match('/\[(\d{4})\]|\b(1044|1045|1049|2002|2005)\b/', $fehler->getMessage(), $t) ? (int)($t[1] ?: $t[2]) : 0;
+        if (str_contains($fehler->getMessage(), "doesn't exist")) {
+            $meldung = 'Tabellen fehlen noch: bitte einmal in admin.html anmelden.';
+        } elseif ($nummer === 1045) {
+            $meldung = 'Keine Verbindung zur Datenbank: Benutzername oder db_passwort in konfiguration.php falsch.';
+        } elseif ($nummer === 1049 || $nummer === 1044) {
+            $meldung = 'Keine Verbindung zur Datenbank: db_name in konfiguration.php falsch.';
+        } elseif ($nummer === 2002 || $nummer === 2005) {
+            $meldung = 'Keine Verbindung zur Datenbank: db_host nicht erreichbar (Datenbank evtl. noch in Einrichtung).';
+        }
     }
     antworte(['fehler' => $meldung]);
 }

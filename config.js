@@ -6,7 +6,7 @@
 // =====================================================================
 
 window.KZ_CONFIG = {
-  apiUrl: "",             // Adresse von api.php
+  apiUrl: "https://partytrailer-krefeld.de/kunst-zaehlt/api.php",   // Adresse von api.php (IONOS)
 
   cookieTage: 30,         // so lange bleibt die Besucher-Kennung im Handy gespeichert
   routenPauseMinuten: 30, // gleiche Station innerhalb dieser Zeit = derselbe Besuch
